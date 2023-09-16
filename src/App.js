@@ -1,15 +1,14 @@
-import { BarcodeFormat, ZXing } from "@zxing/library";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { BrowserMultiFormatReader } from "@zxing/library";
 
 function App() {
   const videoRef = useRef(null);
+  const [scannedCode, setScannedCode] = useState(null); // Okunan kodu tutacak state
 
   useEffect(() => {
     const codeReader = new BrowserMultiFormatReader();
 
-    // Bu, EAN-13 dahil farklı türlerdeki barkodları okuyabilir
     codeReader
       .listVideoInputDevices()
       .then((videoInputDevices) => {
@@ -18,16 +17,11 @@ function App() {
             ? videoInputDevices[0].deviceId
             : undefined;
 
-        // EAN-13 formatı için özel bir hint belirtebilirsiniz
-        const hints = new Map();
-        hints.set(BrowserMultiFormatReader.HINT_POSSIBLE_FORMATS, [
-          BarcodeFormat.EAN_13,
-        ]);
-
         codeReader
-          .decodeFromInputVideoDevice(undefined, videoRef.current, hints)
+          .decodeFromInputVideoDevice(undefined, videoRef.current)
           .then((result) => {
             console.log(`Barkod Okundu: ${result.text}`);
+            setScannedCode(result.text); // Okunan kodu güncelle
           })
           .catch((err) => console.error(err));
       })
@@ -43,6 +37,8 @@ function App() {
     <div className="App">
       <h1>Barkod Okuyucu</h1>
       <video ref={videoRef} width={300} height={200}></video>
+      {scannedCode && <p>Okunan Barkod: {scannedCode}</p>}{" "}
+      {/* Eğer barkod okunduysa yazdır */}
     </div>
   );
 }
